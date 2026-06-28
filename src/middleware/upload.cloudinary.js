@@ -1,18 +1,19 @@
 import multer from "multer";
-import { Readable } from "stream";
-import { v2 as cloudinary } from "cloudinary";
 import ApiError from "../utils/ApiError.js";
 
-// ─── Cloudinary SDK config ─────────────────
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// ─────────────────────────────────────────────
+//  CLOUDINARY UPLOAD HANDLER
+//
+//  ⚠️  Cloudinary is imported LAZILY (inside each
+//  function body using dynamic import) so this
+//  file loads cleanly even when the cloudinary
+//  package is NOT installed.
+//
+//  When IMAGE_STORAGE=local, these functions are
+//  never called — only the multer instance is
+//  exported and used by upload.middleware.js.
+// ─────────────────────────────────────────────
 
-// ─── Multer memory storage ─────────────────
-// Files are kept in memory as buffers and
-// streamed directly to Cloudinary — no disk writes
 const fileFilter = (req, file, cb) => {
   const allowed = /jpeg|jpg|png|webp/;
   const validExt  = allowed.test(file.originalname.toLowerCase());
@@ -24,12 +25,20 @@ const fileFilter = (req, file, cb) => {
 export const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Streams buffer to Cloudinary, returns { url, public_id }
-export const uploadImage = (buffer, folder = "techstore") =>
-  new Promise((resolve, reject) => {
+export const uploadImage = async (buffer, folder = "techstore") => {
+  const { v2: cloudinary } = await import("cloudinary");
+  const { Readable } = await import("stream");
+
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
+  return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder, resource_type: "image" },
       (error, result) => {
@@ -39,22 +48,24 @@ export const uploadImage = (buffer, folder = "techstore") =>
     );
     Readable.from(buffer).pipe(stream);
   });
+};
 
-// Returns the Cloudinary URL as-is (already a full URL)
 export const getImageUrl = (url) => url;
 
-// Deletes image from Cloudinary by public_id
 export const deleteImage = async (imageUrl) => {
   try {
     if (!imageUrl) return;
-    // Extract public_id from Cloudinary URL
-    // e.g. https://res.cloudinary.com/demo/image/upload/techstore/products/abc123
-    //      → public_id: techstore/products/abc123
+    const { v2: cloudinary } = await import("cloudinary");
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key:    process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
     const parts = imageUrl.split("/");
     const uploadIndex = parts.indexOf("upload");
     if (uploadIndex !== -1) {
       const publicIdWithExt = parts.slice(uploadIndex + 2).join("/");
-      const public_id = publicIdWithExt.replace(/\.[^/.]+$/, ""); // remove extension
+      const public_id = publicIdWithExt.replace(/\.[^/.]+$/, "");
       await cloudinary.uploader.destroy(public_id);
     }
   } catch (_) {

@@ -11,29 +11,14 @@ import adminRoutes from "./admin.routes.js";
 import userRoutes from "./user.routes.js";
 
 const router = express.Router();
-
-// ─── Phase 1 ───────────────────────────────
-router.use("/auth", authRoutes);
-
-// ─── Phase 2 ───────────────────────────────
+router.use("/auth",      authRoutes);
 router.use("/categories", categoryRoutes);
-router.use("/products", productRoutes);
-
-// ─── Phase 3 ───────────────────────────────
-router.use("/cart", cartRoutes);
-
-// ─── Phase 4 ───────────────────────────────
-router.use("/wishlist", wishlistRoutes);
+router.use("/products",  productRoutes);
+router.use("/cart",      cartRoutes);
+router.use("/wishlist",  wishlistRoutes);
 router.use("/products/:productId/reviews", reviewRoutes);
-
-// ─── Phase 5 ───────────────────────────────
-router.use("/orders", orderRoutes);
-router.use("/payments", paymentRoutes);
-
-// ─── Phase 6 ───────────────────────────────
-router.use("/admin", adminRoutes);
-
-// ─── Phase 7 ───────────────────────────────
-router.use("/users", userRoutes);
-
+router.use("/orders",    orderRoutes);
+router.use("/payments",  paymentRoutes);
+router.use("/admin",     adminRoutes);
+router.use("/users",     userRoutes);
 export default router;
