@@ -8,6 +8,7 @@ import reviewRoutes from "./review.routes.js";
 import orderRoutes from "./order.routes.js";
 import paymentRoutes from "./payment.routes.js";
 import adminRoutes from "./admin.routes.js";
+import userRoutes from "./user.routes.js";
 
 const router = express.Router();
 
@@ -31,5 +32,8 @@ router.use("/payments", paymentRoutes);
 
 // ─── Phase 6 ───────────────────────────────
 router.use("/admin", adminRoutes);
+
+// ─── Phase 7 ───────────────────────────────
+router.use("/users", userRoutes);
 
 export default router;
