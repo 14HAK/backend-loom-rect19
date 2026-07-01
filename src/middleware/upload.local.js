@@ -11,19 +11,24 @@ const UPLOADS_DIR = path.join(__dirname, "../../uploads");
 
 
 let uploadsDirReady = false;
-try {
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-  }
-  uploadsDirReady = true;
-} catch (err) {
-  console.error(
-    `⚠️  Could not create uploads directory at ${UPLOADS_DIR}. ` +
-    `This usually means you're on a read-only filesystem (e.g. Vercel). ` +
-    `Set IMAGE_STORAGE=cloudinary in your environment variables. ` +
-    `Original error: ${err.message}`
-  );
-}
+
+// ─── LOCAL FOLDER CREATION ─────────────────
+// Commented out — Vercel's filesystem is read-only
+// and does not allow creating folders at runtime.
+// When deploying to Vercel set IMAGE_STORAGE=cloudinary
+// Uncomment this block for local development only:
+//
+// try {
+//   if (!fs.existsSync(UPLOADS_DIR)) {
+//     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+//   }
+//   uploadsDirReady = true;
+// } catch (err) {
+//   console.error(
+//     `⚠️  Could not create uploads directory at ${UPLOADS_DIR}. ` +
+//     `Original error: ${err.message}`
+//   );
+// }
 
 // ─── Multer disk storage ───────────────────
 const storage = multer.diskStorage({
